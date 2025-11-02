@@ -4,18 +4,19 @@ import { isValidPath, showSuccess, isRootDirectory } from '../utils/index.js';
 import { messages } from '../utils/colors.js';
 
 export async function goUp(currentDirectory) {
-  const parentDir = path.dirname(currentDirectory);
-  if (parentDir !== currentDirectory && !isRootDirectory(currentDirectory)) {
-    try {
-      await fs.access(parentDir);
-      showSuccess(`Directory changed to parent directory`);
-      return { newDirectory: parentDir };
-    } catch {
-      throw new Error('Cannot go up')
-    }
+  const currentAbsolute = path.resolve(currentDirectory);
+  const parentDir = path.dirname(currentAbsolute);
+  if (parentDir === currentAbsolute) {
+    showSuccess('Already at root directory');
+    return { newDirectory: currentAbsolute };
   }
-  showSuccess('Already at root directory');
-  return { newDirectory: currentDirectory };
+  try {
+    await fs.access(parentDir);
+    showSuccess(`Directory changed to parent directory`);
+    return { newDirectory: parentDir };
+  } catch (error) {
+    throw new Error('Cannot go up: access denied');
+  }
 }
 
 export async function changeDirectory(currentDirectory, targetPath) {
@@ -38,9 +39,26 @@ export async function changeDirectory(currentDirectory, targetPath) {
     }
     showSuccess(`Directory changed to ${messages.path(newPath)}`)
     return { newDirectory: newPath };
-  } catch {
+  } catch (error) {
     throw new Error('Invalid directory path');
   }
+}
+
+function createConsoleTable(directories, files) {
+  const allItems = [
+    ...directories.map(item => ({ ...item, type: 'directory' })),
+    ...files.map(item => ({ ...item, type: 'file' }))
+  ];
+  console.log(messages.path(`\nDirectory content (${directories.length} directories, ${files.length} files):`));
+  const tableObject = {};
+  allItems.forEach((item, index) => {
+    tableObject[index] = {
+      'Name': item.name,
+      'Type': item.type
+    };
+  });
+
+  console.table(tableObject);
 }
 
 export async function listDirectory(currentDirectory) {
@@ -63,16 +81,8 @@ export async function listDirectory(currentDirectory) {
     }
     directories.sort((a, b) => a.name.localeCompare(b.name));
     files.sort((a, b) => a.name.localeCompare(b.name));
-    console.log(`\nDirectory content:`);
-    console.log('Type\t\tName');
-    console.log('----\t\t----');
-    directories.forEach(dir => {
-      console.log(`${messages.directory('directory')}\t${messages.directory(dir.name)}`);
-    });
-    files.forEach(file => {
-      console.log(`${messages.file('file')}\t\t${messages.file(file.name)}`);
-    });
-    console.log(`\nTotal: ${directories.length} directories, ${files.length} files`);
+    createConsoleTable(directories, files);
+    console.log(`\nTotal - ${directories.length + files.length} items: ${messages.directory(`${directories.length} directories`)} ${messages.file(`${files.length} files`)}`);
     showSuccess('Directory listing completed');
   } catch {
     throw new Error('Cannot read directory');

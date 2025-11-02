@@ -16,33 +16,40 @@ export async function isValidPath(params) {
 }
 
 export function isSubdirectory(parent, child) {
-  const relative = path.relative(parent, child);
-  return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+  try {
+    const relative = path.relative(parent, child);
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function ensureDirectoryExists(dirPath) {
   try {
     await fs.mkdir(dirPath, { recursive: true });
-  } catch {
+  } catch (error) {
     throw new Error(`Cannot create directory: ${dirPath}`);
   }
 }
 
 export function isRootDirectory(dirPath) {
+  const resolvedPath = path.resolve(dirPath);
   if (os.platform() === 'win32') {
-    return path.parse(dirPath).root === dirPath;
+    return path.parse(resolvedPath).root === resolvedPath;
   } else {
-    return dirPath === '/';
+    return resolvedPath === '/';
   }
-}
-
-export function normalizePath(filePath) {
-  if (os.platform() === 'win32') {
-    return filePath.replace(/\//g, '\\');
-  }
-  return filePath;
 }
 
 export function showSuccess(message) {
   console.log(messages.success(message));
+}
+
+export async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }

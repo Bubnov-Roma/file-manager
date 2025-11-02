@@ -24,16 +24,16 @@ class FileManager {
     displayCurrentDirectory(this.currentDirectory);
     this.promptUser();
     this.rl.on('close', () => {
-      console.log(messages.success(`\nThank you for using File Manager, ${this.username}, goodbye!`));
+      console.log(messages.success(`Thank you for using File Manager, ${this.username}, goodbye!`));
       process.exit(0);
     });
   }
   promptUser() {
-    this.rl.question('> ', async (input) => {
+    this.rl.question(`${messages.command('> ')}`, async (input) => {
       try {
         await this.processCommand(input.trim());
       } catch (error) {
-        console.log(messages.error('Operation failed'));
+        console.log(messages.error(`Operation failed: ${messages.warning(`${error.message}`)}`));
       } finally {
         displayCurrentDirectory(this.currentDirectory);
         this.promptUser();
@@ -147,8 +147,3 @@ function getUsername() {
 const username = getUsername();
 const fileManager = new FileManager(username);
 fileManager.start();
-
-process.on('SIGINT', () => {
-  console.log(messages.success(`\nThank you for using File Manager, ${username}, goodbye!`));
-  process.exit(0);
-})
