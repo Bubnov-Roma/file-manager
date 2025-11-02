@@ -6,7 +6,8 @@ import * as fileOperations from './commands/fileOperations.js';
 import * as osInfo from './commands/osInfo.js';
 import * as hash from './commands/hash.js';
 import * as compress from './commands/compress.js';
-import { displayCurrentDirectory } from './utils/index.js'
+import { displayCurrentDirectory, showSuccess } from './utils/index.js';
+import { messages } from './utils/colors.js'
 
 class FileManager {
   constructor(username) {
@@ -19,11 +20,11 @@ class FileManager {
   }
 
   start() {
-    console.log(`Welcome to the File Manager, ${this.username}!`);
+    console.log(messages.success(`Welcome to the File Manager, ${this.username}!`));
     displayCurrentDirectory(this.currentDirectory);
     this.promptUser();
     this.rl.on('close', () => {
-      console.log(`\nThank you for using File Manager, ${this.username}, goodbye!`);
+      console.log(messages.success(`\nThank you for using File Manager, ${this.username}, goodbye!`));
       process.exit(0);
     });
   }
@@ -32,7 +33,7 @@ class FileManager {
       try {
         await this.processCommand(input.trim());
       } catch (error) {
-        console.log('Operation failed');
+        console.log(messages.error('Operation failed'));
       } finally {
         displayCurrentDirectory(this.currentDirectory);
         this.promptUser();
@@ -91,7 +92,7 @@ class FileManager {
         this.rl.close();
         return;
       default:
-        console.log('Invalid input');
+        console.log(messages.error('Invalid input'));
     }
   }
   async executeCommand(commandFunc, _args, ...commandArgs) {
@@ -108,7 +109,7 @@ class FileManager {
   async executeOSCommand(args) {
     const option = args[0];
     if (!option) {
-      console.log('Invalid input');
+      console.log(messages.error('Invalid input'));
       return;
     }
     switch (option) {
@@ -128,7 +129,7 @@ class FileManager {
         osInfo.getArchitecture();
         break;
       default:
-        console.log('Invalid input');
+        console.log(messages.error('Invalid input'));
     }
   }
 }
@@ -137,7 +138,7 @@ function getUsername() {
   const args = process.argv.slice(2);
   const usernameArg = args.find(arg => arg.startsWith(`--username=`));
   if (!usernameArg) {
-    console.log('Please provide username with --username=your_username');
+    console.log(messages.error('Please provide username with --username=your_username'));
     process.exit(1);
   }
   return usernameArg.split('=')[1];
@@ -148,6 +149,6 @@ const fileManager = new FileManager(username);
 fileManager.start();
 
 process.on('SIGINT', () => {
-  console.log(`\nThank you for using File Manager, ${username}, goodbye!`);
+  console.log(messages.success(`\nThank you for using File Manager, ${username}, goodbye!`));
   process.exit(0);
 })

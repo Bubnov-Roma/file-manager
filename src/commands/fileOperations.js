@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import { createReadStream, createWriteStream } from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
-import { ensureDirectoryExists, isSubdirectory } from '../utils/index.js';
+import { ensureDirectoryExists, isSubdirectory, showSuccess } from '../utils/index.js';
+import { messages } from '../utils/colors.js';
 
 export async function readFile(currentDirectory, filePath) {
   if (!filePath) {
@@ -16,6 +17,9 @@ export async function readFile(currentDirectory, filePath) {
     if (!stats.isFile()) {
       throw new Error('Path is not a file');
     }
+    console.log(messages.info(`Content of ${messages.file(absolutePath)}:`));
+    console.log('─'.repeat(50));
+
     const readStream = createReadStream(absolutePath, 'utf8');
     readStream.on('data', (chunk) => {
       process.stdout.write(chunk);
@@ -24,7 +28,8 @@ export async function readFile(currentDirectory, filePath) {
       readStream.on('end', resolve);
       readStream.on('error', reject);
     });
-    console.log()
+    console.log('\n' + '─'.repeat(50));
+    showSuccess('File read completed');
   } catch {
     throw new Error('Cannot read file')
   }
@@ -36,7 +41,8 @@ export async function createFile(currentDirectory, fileName) {
   }
   const filePath = path.resolve(currentDirectory, fileName);
   try {
-    await fs.writeFile(filePath, '')
+    await fs.writeFile(filePath, '');
+    showSuccess(`File ${messages.file(fileName)} created successfully`);
   } catch {
     throw new Error('Cannot create file');
   }
@@ -49,6 +55,7 @@ export async function createDirectory(currentDirectory, dirName) {
   const dirPath = path.resolve(currentDirectory, dirName);
   try {
     await fs.mkdir(dirPath);
+    showSuccess(`Directory ${messages.directory(dirName)} created successfully`);
   } catch {
     throw new Error('Cannot create directory');
   }
@@ -65,6 +72,7 @@ export async function renameFile(currentDirectory, oldPath, newName) {
   try {
     await fs.access(oldAbsolutePath);
     await fs.rename(oldAbsolutePath, newAbsolutePath);
+    showSuccess(`File renamed from ${messages.file(path.basename(oldPath))} to ${messages.file(newName)}`);
   } catch {
     throw new Error('Cannot rename file');
   }
@@ -91,6 +99,7 @@ export async function copyFile(currentDirectory, sourcePath, targetDir) {
     const readStream = createReadStream(sourceAbsolutePath);
     const writeStream = createWriteStream(targetAbsolutePath);
     await pipeline(readStream, writeStream);
+    showSuccess(`File ${messages.file(path.basename(sourcePath))} copied to ${messages.path(targetDir)}`);
   } catch {
     throw new Error('Cannot copy file');
   }
@@ -114,8 +123,11 @@ export async function moveFile(currentDirectory, sourcePath, targetDir) {
     if (!isSubdirectory(currentDirectory, path.dirname(targetAbsolutePath))) {
       throw new Error('Target directory is not valid');
     }
-    await copyFile(currentDirectory, sourcePath, targetDir);
+    const readStream = createReadStream(sourceAbsolutePath);
+    const writeStream = createWriteStream(targetAbsolutePath);
+    await pipeline(readStream, writeStream);
     await fs.unlink(sourceAbsolutePath);
+    showSuccess(`File ${messages.file(path.basename(sourcePath))} moved to ${messages.path(targetDir)}`);
   } catch {
     throw new Error('Cannot move file');
   }
@@ -133,6 +145,7 @@ export async function deleteFile(currentDirectory, filePath) {
   }
   try {
     await fs.unlink(absolutePath);
+    showSuccess(`File ${messages.file(path.basename(filePath))} deleted successfully`);
   } catch {
     throw new Error('Cannot delete file');
   }

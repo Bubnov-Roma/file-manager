@@ -1,8 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { messages } from './colors.js';
 
 export function displayCurrentDirectory(currentDirectory) {
-  console.log(`You are currently in ${currentDirectory}`);
+  console.log(messages.info(`You are currently in ${messages.path(currentDirectory)}`));
 }
 
 export async function isValidPath(params) {
@@ -25,4 +26,23 @@ export async function ensureDirectoryExists(dirPath) {
   } catch {
     throw new Error(`Cannot create directory: ${dirPath}`);
   }
+}
+
+export function isRootDirectory(dirPath) {
+  if (os.platform() === 'win32') {
+    return path.parse(dirPath).root === dirPath;
+  } else {
+    return dirPath === '/';
+  }
+}
+
+export function normalizePath(filePath) {
+  if (os.platform() === 'win32') {
+    return filePath.replace(/\//g, '\\');
+  }
+  return filePath;
+}
+
+export function showSuccess(message) {
+  console.log(messages.success(message));
 }
