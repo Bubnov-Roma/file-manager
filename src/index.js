@@ -93,10 +93,47 @@ class FileManager {
       case '.exit':
         this.rl.close();
         return;
-      default: console.log('Invalid input');
+      default:
+        console.log('Invalid input');
+    }
+  }
+  async executeCommand(commandFunc, _args, ...commandArgs) {
+    try {
+      const result = await commandFunc(this.currentDirectory, ...commandArgs);
+      if (result && result.newDirectory) {
+        this.currentDirectory = result.newDirectory;
+      }
+      displayCurrentDirectory(this.currentDirectory);
+    } catch {
+      console.log('Operation failed');
+    }
+  }
+
+  async executeOSCommand(args) {
+    const option = args[0];
+
+    switch (option) {
+      case '--EOL':
+        osInfo.getEOL();
+        break;
+      case '--cpus':
+        osInfo.getCPUs();
+        break;
+      case '--homedir':
+        osInfo.getHomeDir();
+        break;
+      case '--username':
+        osInfo.getUsername();
+        break;
+      case '--architecture':
+        osInfo.getArchitecture();
+        break;
+      default:
+        console.log('Invalid input');
     }
   }
 }
+
 
 function getUsername() {
   const args = process.argv.slice(2);
