@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import { createReadStream, createWriteStream } from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
+import { ensureDirectoryExists, isSubdirectory } from '../utils/index.js';
 
 export async function readFile(currentDirectory, filePath) {
   if (!filePath) {
@@ -84,6 +85,9 @@ export async function copyFile(currentDirectory, sourcePath, targetDir) {
   try {
     await fs.access(sourceAbsolutePath);
     await ensureDirectoryExists(path.dirname(targetAbsolutePath));
+    if (!isSubdirectory(currentDirectory, path.dirname(targetAbsolutePath))) {
+      throw new Error('Target directory is not valid');
+    }
     const readStream = createReadStream(sourceAbsolutePath);
     const writeStream = createWriteStream(targetAbsolutePath);
     await pipeline(readStream, writeStream);
@@ -106,7 +110,11 @@ export async function moveFile(currentDirectory, sourcePath, targetDir) {
     : path.resolve(currentDirectory, targetDir, path.basename(sourcePath));
 
   try {
-    await copyFile(currentDirectory, sourceAbsolutePath, targetAbsolutePath);
+    await ensureDirectoryExists(path.dirname(targetAbsolutePath));
+    if (!isSubdirectory(currentDirectory, path.dirname(targetAbsolutePath))) {
+      throw new Error('Target directory is not valid');
+    }
+    await copyFile(currentDirectory, sourcePath, targetDir);
     await fs.unlink(sourceAbsolutePath);
   } catch {
     throw new Error('Cannot move file');
@@ -120,6 +128,9 @@ export async function deleteFile(currentDirectory, filePath) {
   const absolutePath = path.isAbsolute(filePath)
     ? filePath
     : path.resolve(currentDirectory, filePath);
+  if (!isSubdirectory(currentDirectory, path.dirname(absolutePath))) {
+    throw new Error('Cannot delete file outside current directory');
+  }
   try {
     await fs.unlink(absolutePath);
   } catch {

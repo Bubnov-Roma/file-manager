@@ -1,7 +1,5 @@
 import os from 'os';
-import path from 'path';
 import readline from 'readline';
-import { fileURLToPath } from 'url';
 
 import * as navigation from './commands/navigation.js';
 import * as fileOperations from './commands/fileOperations.js';
@@ -9,8 +7,6 @@ import * as osInfo from './commands/osInfo.js';
 import * as hash from './commands/hash.js';
 import * as compress from './commands/compress.js';
 import { displayCurrentDirectory } from './utils/index.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 class FileManager {
   constructor(username) {
@@ -38,6 +34,7 @@ class FileManager {
       } catch (error) {
         console.log('Operation failed');
       } finally {
+        displayCurrentDirectory(this.currentDirectory);
         this.promptUser();
       }
     });
@@ -103,15 +100,17 @@ class FileManager {
       if (result && result.newDirectory) {
         this.currentDirectory = result.newDirectory;
       }
-      displayCurrentDirectory(this.currentDirectory);
-    } catch {
-      console.log('Operation failed');
+    } catch (error) {
+      throw error;
     }
   }
 
   async executeOSCommand(args) {
     const option = args[0];
-
+    if (!option) {
+      console.log('Invalid input');
+      return;
+    }
     switch (option) {
       case '--EOL':
         osInfo.getEOL();
@@ -133,7 +132,6 @@ class FileManager {
     }
   }
 }
-
 
 function getUsername() {
   const args = process.argv.slice(2);

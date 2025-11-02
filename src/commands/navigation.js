@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { isValidPath } from '../utils/index.js';
 
 export async function goUp(currentDirectory) {
   const parentDir = path.dirname(currentDirectory);
@@ -30,6 +31,9 @@ export async function changeDirectory(currentDirectory, targetPath) {
     if (!stats.isDirectory()) {
       throw new Error('Path is not a directory');
     }
+    if (!await isValidPath(newPath)) {
+      throw new Error('Invalid directory path');
+    }
     return { newDirectory: newPath };
   } catch {
     throw new Error('Invalid directory path');
@@ -39,7 +43,6 @@ export async function changeDirectory(currentDirectory, targetPath) {
 export async function listDirectory(currentDirectory) {
   try {
     const items = await fs.readdir(currentDirectory, { withFileTypes: true });
-
     const directories = [];
     const files = [];
     for (const item of items) {
