@@ -1,4 +1,4 @@
-import { createReadStream } from 'fs/promises';
+import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
 import path from 'path';
 

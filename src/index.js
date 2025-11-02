@@ -3,12 +3,12 @@ import path from 'path';
 import readline from 'readline';
 import { fileURLToPath } from 'url';
 
-import * as navigation from './commands/navigation';
-import * as fileOperations from './commands/fileOperations';
-import * as osInfo from './commands/osInfo';
-import * as hash from './commands/hash';
-import * as compress from './commands/compress';
-import { displayCurrentDirectory } from './utils'
+import * as navigation from './commands/navigation.js';
+import * as fileOperations from './commands/fileOperations.js';
+import * as osInfo from './commands/osInfo.js';
+import * as hash from './commands/hash.js';
+import * as compress from './commands/compress.js';
+import { displayCurrentDirectory } from './utils/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -23,7 +23,7 @@ class FileManager {
   }
 
   start() {
-    console.log(`Welcome to. the File Manager, ${this.username}!`);
+    console.log(`Welcome to the File Manager, ${this.username}!`);
     displayCurrentDirectory(this.currentDirectory);
     this.promptUser();
     this.rl.on('close', () => {

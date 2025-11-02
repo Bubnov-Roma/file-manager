@@ -2,7 +2,7 @@ import { createReadStream, createWriteStream } from 'fs';
 import { createBrotliCompress, createBrotliDecompress } from 'zlib';
 import { pipeline } from 'stream/promises';
 import path from 'path';
-import { ensureDirectoryExists } from '../utils.js';
+import { ensureDirectoryExists } from '../utils/index.js';
 
 export async function compressFile(currentDirectory, sourcePath, targetPath) {
   if (!sourcePath || !targetPath) {
