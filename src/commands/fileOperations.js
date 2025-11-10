@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { createReadStream, createWriteStream } from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
-import { ensureDirectoryExists, showSuccess, fileExists } from '../utils/index.js';
+import { ensureDirectoryExists, showSuccess, fileExists, isSubdirectory } from '../utils/index.js';
 import { messages } from '../utils/colors.js';
 
 export async function readFile(currentDirectory, filePath) {
